@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Budget Visualizer</title>
+  <!-- Flatly Bootstrap Theme from Bootswatch -->
+  <link href="https://stackpath.bootstrapcdn.com/bootswatch/4.5.2/flatly/bootstrap.min.css" rel="stylesheet">
+  <!-- Bootstrap Icons for arrows -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+  <style>
+    .flowchart-box {
+      background-color: #f0f0f0;
+      padding: 20px;
+      border-radius: 8px;
+      text-align: center;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      width: 200px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      height: 250px;
+    }
+    .flowchart-arrow {
+      font-size: 100px; /* Increased font size for larger arrows */
+      margin: 0 20px;
+      display: flex;
+      justify-content: center;
+    }
+    .flowchart-container {
+      display: flex;
+      justify-content: center;
+      align-items: stretch;
+      flex-wrap: wrap;
+    }
+    .flowchart-row {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .flowchart-box h4 {
+      margin-bottom: 10px;
+    }
+    .flowchart-box p {
+      font-size: 14px;
+      font-weight: bold;
+    }
+    .progress-container {
+      margin-top: 20px;
+    }
+    .progress-bar {
+      background-color: #28a745; /* Green progress bar */
+      padding: 25px; /* Increased padding inside the progress bar */
+      font-size: 22px; /* Increased font size for the progress bar text */
+      text-align: center;
+      line-height: 50px; /* Vertically center the text */
+      height: 80px; /* Increased height of the progress bar */
+    }
+    .container-fluid {
+      padding: 100px;
+    }
+    .logo {
+      font-size: 2.5rem;
+      font-weight: bold;
+      color: black; /* Changed to black */
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    .input-group {
+      display: flex;
+      justify-content: center;
+    }
+    .input-group input {
+      width: 100px;
+      text-align: center;
+      font-size: 18px; /* Increased font size for the input fields */
+    }
+    .btn-custom {
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      padding: 5px 10px;
+    }
+    .btn-custom:hover {
+      background-color: #0056b3;
+    }
+    .reset-btn, .print-btn {
+      background-color: #dc3545;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+    }
+    .reset-btn:hover, .print-btn:hover {
+      background-color: #c82333;
+    }
+    .dropdown-menu {
+      right: 0;
+      left: auto;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container-fluid">
+    <!-- Dropdown for Print and Reset Buttons -->
+    <div class="dropdown" style="position: absolute; top: 20px; right: 20px;">
+      <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+        Actions
+      </button>
+      <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+        <!-- Print Button -->
+        <a class="dropdown-item print-btn" href="javascript:window.print();">Print</a>
+        <!-- Reset Button -->
+        <a class="dropdown-item reset-btn" href="javascript:resetInputs();">Reset</a>
+      </div>
+    </div>
+
+    <!-- Logo Text -->
+    <div class="logo">
+      Budget Visualizer
+    </div>
+
+    <!-- Budget Input Form -->
+    <div class="row mb-4 justify-content-center">
+      <div class="col-md-3 mb-3">
+        <label for="income" class="form-label">Income</label>
+        <div class="input-group">
+          <button class="btn-custom" onclick="updateInput('income', -100)">-</button>
+          <input type="number" class="form-control" id="income" name="income" step="100" value="0">
+          <button class="btn-custom" onclick="updateInput('income', 100)">+</button>
+        </div>
+      </div>
+      <div class="col-md-3 mb-3">
+        <label for="bills" class="form-label">Bills</label>
+        <div class="input-group">
+          <button class="btn-custom" onclick="updateInput('bills', -100)">-</button>
+          <input type="number" class="form-control" id="bills" name="bills" step="100" value="0">
+          <button class="btn-custom" onclick="updateInput('bills', 100)">+</button>
+        </div>
+      </div>
+      <div class="col-md-3 mb-3">
+        <label for="spending" class="form-label">Spending</label>
+        <div class="input-group">
+          <button class="btn-custom" onclick="updateInput('spending', -100)">-</button>
+          <input type="number" class="form-control" id="spending" name="spending" step="100" value="0">
+          <button class="btn-custom" onclick="updateInput('spending', 100)">+</button>
+        </div>
+      </div>
+      <div class="col-md-3 mb-3">
+        <label for="savings" class="form-label">Savings / Investing</label>
+        <div class="input-group">
+          <button class="btn-custom" onclick="updateInput('savings', -100)">-</button>
+          <input type="number" class="form-control" id="savings" name="savings" step="100" value="0">
+          <button class="btn-custom" onclick="updateInput('savings', 100)">+</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Display Flowchart with Results -->
+    <div class="flowchart-container" id="flowchartContainer">
+      <!-- Flowchart boxes will be dynamically updated here -->
+    </div>
+
+    <!-- Progress Bar for Remaining -->
+    <div class="progress-container">
+      <label for="remaining-progress" class="form-label">Remaining Amount</label>
+      <div class="progress">
+        <div id="remaining-progress" class="progress-bar" role="progressbar" style="width: 100%" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100">
+          $0
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bootstrap JS, Popper.js, and Bootstrap Icons -->
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"></script>
+
+  <script>
+    // Function to update the input values by increasing or decreasing
+    function updateInput(id, change) {
+      const input = document.getElementById(id);
+      let value = parseFloat(input.value) || 0;
+      value += change;
+      input.value = value; // Allow value to go below zero
+      updateFlowchart(); // Update the flowchart after change
+    }
+
+    // Function to update the flowchart with the latest data
+    function updateFlowchart() {
+      // Get values from input fields
+      const income = parseFloat(document.getElementById('income').value) || 0;
+      const bills = parseFloat(document.getElementById('bills').value) || 0;
+      const spending = parseFloat(document.getElementById('spending').value) || 0;
+      const savings = parseFloat(document.getElementById('savings').value) || 0;
+      const remaining = income - (bills + spending + savings);
+
+      // Calculate percentages for each category
+      const billsPercentage = income > 0 ? ((bills / income) * 100).toFixed(2) : 0;
+      const spendingPercentage = income > 0 ? ((spending / income) * 100).toFixed(2) : 0;
+      const savingsPercentage = income > 0 ? ((savings / income) * 100).toFixed(2) : 0;
+
+      // Create flowchart dynamically
+      const flowchartContainer = document.getElementById('flowchartContainer');
+      flowchartContainer.innerHTML = `
+        <!-- Income Box -->
+        <div class="flowchart-row">
+          <div class="flowchart-box">
+            <h4>Income</h4>
+            <p>$${income.toFixed(2)}</p>
+            <p>Salary, side jobs, etc.</p>
+          </div>
+          <i class="bi bi-arrow-right flowchart-arrow"></i>
+        </div>
+
+        <!-- Bills Box -->
+        <div class="flowchart-row">
+          <div class="flowchart-box">
+            <h4>Bills</h4>
+            <p>$${bills.toFixed(2)} (${billsPercentage}%)</p>
+            <p>Rent, utilities, loans, etc.</p>
+          </div>
+          <i class="bi bi-arrow-right flowchart-arrow"></i>
+        </div>
+
+        <!-- Spending Box -->
+        <div class="flowchart-row">
+          <div class="flowchart-box">
+            <h4>Spending</h4>
+            <p>$${spending.toFixed(2)} (${spendingPercentage}%)</p>
+            <p>Entertainment, food, etc.</p>
+          </div>
+          <i class="bi bi-arrow-right flowchart-arrow"></i>
+        </div>
+
+        <!-- Savings/Investing Box -->
+        <div class="flowchart-row">
+          <div class="flowchart-box">
+            <h4>Savings / Investing</h4>
+            <p>$${savings.toFixed(2)} (${savingsPercentage}%)</p>
+            <p>Emergency funds, investments, etc.</p>
+          </div>
+        </div>
+      `;
+
+      // Update the remaining value and progress bar
+      const remainingProgress = document.getElementById('remaining-progress');
+      remainingProgress.style.width = income > 0 ? ((remaining / income) * 100) + "%" : "100%";
+      remainingProgress.setAttribute('aria-valuenow', (remaining / income) * 100);
+      remainingProgress.innerHTML = `$${remaining.toFixed(2)}`;
+    }
+
+    // Function to reset all inputs
+    function resetInputs() {
+      document.getElementById('income').value = 0;
+      document.getElementById('bills').value = 0;
+      document.getElementById('spending').value = 0;
+      document.getElementById('savings').value = 0;
+      updateFlowchart();
+    }
+
+    // Initial call to update flowchart with defaults
+    updateFlowchart();
+  </script>
+</body>
+</html>
