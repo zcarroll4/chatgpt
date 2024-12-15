@@ -1,14 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Budget Visualizer</title>
-  <!-- Flatly Bootstrap Theme from Bootswatch -->
   <link href="https://stackpath.bootstrapcdn.com/bootswatch/4.5.2/flatly/bootstrap.min.css" rel="stylesheet">
-  <!-- Bootstrap Icons for arrows -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
   <style>
+    .progress {
+      height: 2rem !important;
+      font-size: large;
+    }
+
     .flowchart-box {
       background-color: #f0f0f0;
       padding: 20px;
@@ -21,60 +25,59 @@
       justify-content: space-between;
       height: 250px;
     }
+
     .flowchart-arrow {
-      font-size: 100px; /* Increased font size for larger arrows */
+      font-size: 100px;
       margin: 0 20px;
       display: flex;
       justify-content: center;
     }
+
     .flowchart-container {
       display: flex;
       justify-content: center;
       align-items: stretch;
       flex-wrap: wrap;
     }
+
     .flowchart-row {
       display: flex;
       justify-content: center;
       align-items: center;
     }
+
     .flowchart-box h4 {
       margin-bottom: 10px;
     }
+
     .flowchart-box p {
-      font-size: 14px;
+      font-size: 16px;
       font-weight: bold;
     }
-    .progress-container {
-      margin-top: 20px;
-    }
-    .progress-bar {
-      background-color: #28a745; /* Green progress bar */
-      padding: 25px; /* Increased padding inside the progress bar */
-      font-size: 22px; /* Increased font size for the progress bar text */
-      text-align: center;
-      line-height: 50px; /* Vertically center the text */
-      height: 80px; /* Increased height of the progress bar */
-    }
+
     .container-fluid {
       padding: 100px;
     }
+
     .logo {
       font-size: 2.5rem;
       font-weight: bold;
-      color: black; /* Changed to black */
+      color: black;
       text-align: center;
       margin-bottom: 30px;
     }
+
     .input-group {
       display: flex;
       justify-content: center;
     }
+
     .input-group input {
       width: 100px;
       text-align: center;
-      font-size: 18px; /* Increased font size for the input fields */
+      font-size: 20px;
     }
+
     .btn-custom {
       background-color: #007bff;
       color: white;
@@ -82,41 +85,58 @@
       border-radius: 4px;
       padding: 5px 10px;
     }
+
     .btn-custom:hover {
       background-color: #0056b3;
     }
-    .reset-btn, .print-btn {
-      background-color: #dc3545;
-      color: white;
-      border: none;
-      padding: 10px 20px;
-      border-radius: 5px;
+
+    .progress-container {
+      margin-top: 20px;
     }
-    .reset-btn:hover, .print-btn:hover {
-      background-color: #c82333;
-    }
-    .dropdown-menu {
-      right: 0;
-      left: auto;
+
+    /* Media Query to hide arrows and add margin between flowchart items on smaller screens */
+    @media (max-width: 768px) {
+      .flowchart-arrow {
+        display: none;
+        /* Hide arrows on screens smaller than 768px */
+      }
+
+      .flowchart-row {
+        margin-bottom: 20px;
+        /* Add space between each flow item */
+      }
+
+      .flowchart-box {
+        margin-bottom: 20px;
+        /* Add bottom margin to the flowchart boxes */
+        width: 100%;
+        /* Make the boxes take full width on mobile */
+      }
+
+      .container-fluid {
+        padding: 20px;
+      }
+
+      .progress {
+        font-size: small;
+      }
+
+      .flowchart-container {
+        display: flow;
+      }
     }
   </style>
 </head>
+
 <body>
 
   <div class="container-fluid">
-    <!-- Dropdown for Print and Reset Buttons -->
-    <div class="dropdown" style="position: absolute; top: 20px; right: 20px;">
-      <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-        Actions
-      </button>
-      <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-        <!-- Print Button -->
-        <a class="dropdown-item print-btn" href="javascript:window.print();">Print</a>
         <!-- Reset Button -->
-        <a class="dropdown-item reset-btn" href="javascript:resetInputs();">Reset</a>
-      </div>
-    </div>
-
+        <div class="row mb-4 justify-content-center">
+          <div class="col-12 text-right">
+            <button class="btn btn-danger btn-custom" onclick="resetBudget()">Reset Budget</button>
+          </div>
+        </div>
     <!-- Logo Text -->
     <div class="logo">
       Budget Visualizer
@@ -159,16 +179,15 @@
     </div>
 
     <!-- Display Flowchart with Results -->
-    <div class="flowchart-container" id="flowchartContainer">
-      <!-- Flowchart boxes will be dynamically updated here -->
-    </div>
+    <div class="flowchart-container" id="flowchartContainer"></div>
 
     <!-- Progress Bar for Remaining -->
     <div class="progress-container">
-      <label for="remaining-progress" class="form-label">Remaining Amount</label>
+      <label for="remaining-progress">Remaining Budget</label>
       <div class="progress">
-        <div id="remaining-progress" class="progress-bar" role="progressbar" style="width: 100%" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100">
-          $0
+        <div id="remaining-progress" class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0"
+          aria-valuemax="100" style="width: 0%;">
+          <span id="remaining-amount" class="remaining-amount"></span>
         </div>
       </div>
     </div>
@@ -184,8 +203,25 @@
       const input = document.getElementById(id);
       let value = parseFloat(input.value) || 0;
       value += change;
-      input.value = value; // Allow value to go below zero
-      updateFlowchart(); // Update the flowchart after change
+      input.value = value;
+      saveToLocalStorage(id, value); // Save updated value to localStorage
+      updateFlowchart(); // Update flowchart and progress bar
+    }
+
+    // Function to save data to localStorage
+    function saveToLocalStorage(id, value) {
+      localStorage.setItem(id, value);
+    }
+
+    // Function to load data from localStorage
+    function loadFromLocalStorage() {
+      const fields = ['income', 'bills', 'spending', 'savings'];
+      fields.forEach(field => {
+        const value = localStorage.getItem(field);
+        if (value !== null) {
+          document.getElementById(field).value = value;
+        }
+      });
     }
 
     // Function to update the flowchart with the latest data
@@ -201,6 +237,7 @@
       const billsPercentage = income > 0 ? ((bills / income) * 100).toFixed(2) : 0;
       const spendingPercentage = income > 0 ? ((spending / income) * 100).toFixed(2) : 0;
       const savingsPercentage = income > 0 ? ((savings / income) * 100).toFixed(2) : 0;
+      const remainingPercentage = income > 0 ? ((remaining / income) * 100).toFixed(2) : 0;
 
       // Create flowchart dynamically
       const flowchartContainer = document.getElementById('flowchartContainer');
@@ -245,24 +282,56 @@
         </div>
       `;
 
-      // Update the remaining value and progress bar
-      const remainingProgress = document.getElementById('remaining-progress');
-      remainingProgress.style.width = income > 0 ? ((remaining / income) * 100) + "%" : "100%";
-      remainingProgress.setAttribute('aria-valuenow', (remaining / income) * 100);
-      remainingProgress.innerHTML = `$${remaining.toFixed(2)}`;
+      // Update Progress Bar for Remaining
+      const remainingProgressBar = document.getElementById('remaining-progress');
+      const remainingAmount = document.getElementById('remaining-amount');
+      remainingProgressBar.style.width = `${remainingPercentage}%`;
+      remainingProgressBar.setAttribute('aria-valuenow', remainingPercentage);
+
+      // Display the remaining amount along with the percentage on the progress bar
+      remainingAmount.textContent = `$${remaining.toFixed(2)} (${remainingPercentage}%)`;
     }
 
-    // Function to reset all inputs
-    function resetInputs() {
-      document.getElementById('income').value = 0;
-      document.getElementById('bills').value = 0;
-      document.getElementById('spending').value = 0;
-      document.getElementById('savings').value = 0;
-      updateFlowchart();
-    }
+    // Event listeners for manual input changes (keyup event)
+    document.getElementById('income').addEventListener('keyup', updateFlowchart);
+    document.getElementById('bills').addEventListener('keyup', updateFlowchart);
+    document.getElementById('spending').addEventListener('keyup', updateFlowchart);
+    document.getElementById('savings').addEventListener('keyup', updateFlowchart);
 
-    // Initial call to update flowchart with defaults
-    updateFlowchart();
+    // Load saved values from localStorage when the page loads
+    window.onload = function () {
+      loadFromLocalStorage();
+      updateFlowchart(); // Ensure the flowchart updates with loaded values
+    };
+
+    function resetBudget() {
+  // Reset the input values to 0
+  const fields = ['income', 'bills', 'spending', 'savings'];
+  fields.forEach(field => {
+    document.getElementById(field).value = 0;
+    saveToLocalStorage(field, 0); // Also reset the saved values in localStorage
+  });
+
+  // Clear the flowchart content
+  const flowchartContainer = document.getElementById('flowchartContainer');
+  flowchartContainer.innerHTML = '';
+
+  // Reset the progress bar to 0%
+  const remainingProgressBar = document.getElementById('remaining-progress');
+  remainingProgressBar.style.width = '0%';
+  remainingProgressBar.setAttribute('aria-valuenow', 0);
+
+  // Reset the remaining amount display
+  const remainingAmount = document.getElementById('remaining-amount');
+  remainingAmount.textContent = '$0.00 (0%)';
+
+  // Update the flowchart and progress bar after reset
+  updateFlowchart();
+}
+
+
+
   </script>
 </body>
+
 </html>
